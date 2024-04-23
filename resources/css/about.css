@@ -1,0 +1,10 @@
+.about-us {
+    padding: 2vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 80%;
+    margin: 60px auto;
+    background-color: #e0ccbe;
+  }
