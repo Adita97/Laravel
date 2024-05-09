@@ -8,3 +8,13 @@
     margin: 60px auto;
     background-color: #e0ccbe;
   }
+
+  .card-img-top{
+    height: 300px;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .card:hover{
+    scale: 1.2;
+  }

@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('phone_number');
             $table->string('username');
             $table->string('password');
+            $table->string('profile_avatar');
+            $table->string('bio');
+            $table->boolean('is_admin')->default(false);
             $table->timestamps();
         });
 

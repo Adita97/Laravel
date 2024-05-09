@@ -19,7 +19,6 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (Auth::attempt($credentials)) {
-            // Authentication passed...
             $user = Auth::user();
             $request->session()->put('user_details', [
                 'name' => $user->full_name,

@@ -4,18 +4,64 @@ namespace App\Http\Controllers;
 
 
 
-use Illuminate\Http\Request;
-
 use App\Models\User;
 
-class profileController extends Controller
+use App\Models\UserLink;
+use App\Models\UserSkill;
+use Illuminate\Http\Request;
+
+class ProfileController extends Controller
 {
-    public function showProfile(){
+    public function showProfile()
+    {
+        $user = auth()->user();
+        $user->load('userLinks'); // Load the userLinks relationship
+        
+        return view('auth.profile', compact('user'));
+    }
 
-    $user =auth()->user();
+    public function editLinks()
+    {
+        $userLinks = auth()->user()->userLinks ?? new UserLink();
+        return view('edit-links', compact('userLinks'));
+    }
 
-    return view('auth.profile', compact('user'));
-}
+    public function updateLinks(Request $request)
+    {
+        $user = auth()->user();
+        $user->userLinks()->updateOrCreate(
+            ['user_id' => $user->id],
+            $request->only(['website', 'twitter', 'instagram'])
+        );
+
+        return redirect()->back()->with('success', 'Links updated successfully');
+    }
+    
+       
+    public function updateSkills(Request $request)
+    {
+        $user = auth()->user();
+    
+        if ($request->has('skills')) {
+            foreach ($request->skills as $skill) {
+                $user->userSkills()->create(['skill' => $skill]);
+            }
+        }
+    
+        return redirect()->back()->with('success', 'Skills updated successfully');
+    }
+    
+
+    public function deleteSkill($id)
+    {
+        
+        $skill = UserSkill::findOrFail($id);
+        $skill->delete();
+
+        return redirect()->back()->with('success', 'Skill deleted successfully');
+        
+        
+    }
 
 
     public function updateProfile(Request $request): RedirectResponse
@@ -26,48 +72,35 @@ class profileController extends Controller
         $user->email = $request->input('email');
         $user->phone_number = $request->input('phone_number');
         $user->username = $request->input('username');
+        $user->bio = $request->input('bio');
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profile updated successfully!');
     }
 
-    public function updateProfileAvatar(Request $request)
+    public function updateAvatar(Request $request)
     {
-        
         $request->validate([
-            'profile_avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust max file size as per your requirement
+            'profile_avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-    
-       
+
+        $user = auth()->user();
+
+        // Handle file upload
         if ($request->hasFile('profile_avatar')) {
-           
-            $image = $request->file('profile_avatar');
-    
-            
-            $imageName = time() . '.' . $image->getClientOriginalName();
+            $avatar = $request->file('profile_avatar');
+            $filename = time() . '.' . $avatar->getClientOriginalExtension();
+            $avatar->storeAs('avatars', $filename, 'public');
 
-            $path = $image->storeAs(
-                'storage/avatars', $request->user()->id
-            );
-
-            Auth::user()->update(['profile_avatar' => $path]);
-    
+            // Update user's profile avatar
+            $user->profile_avatar = $filename;
+            $user->save();
         }
-            // $path = $image->store('avatars', $imageName, 'storage/avatars');
-    
-        //     if ($path) {
-        //         $user = auth()->user();
-        //         $user->profile_avatar = $path;
-        //         $user->save();
-        //             return redirect()->back()->with('success', 'Profile avatar uploaded successfully.');
-        //     } else {
-        //         return redirect()->back()->with('error', 'Failed to store profile avatar.');
-        //     }
-        // } else {
-        //     return redirect()->back()->with('error', 'No file uploaded.');
-        // }
-        
+
+        return redirect()->back()->with('success', 'Profile avatar updated successfully.');
     }
+        
+    
 
     
 
@@ -110,5 +143,17 @@ class profileController extends Controller
     return redirect()->route('profile')->with('success', 'Email updated successfully');
 
 }
+    public function updateBio(Request $request){
+        $request->validate([
+            'bio' => 'required|string|min:5|max:255',
+        ]);
+             $user = auth()->user();
+            $user->bio = $request->input('bio');
+            $user->save();
+
+
+            return redirect()->route('profile')->with('success', 'Bio updated successfully');
+        
+    }
     
 }

@@ -8,26 +8,29 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-    public function index()
-    {
-        $comments = Comment::all();
-        return view('home', compact('comments'));
-    }
+    // public function index()
+    // {
+    //     $user = auth()->user();
+    //     $comments = Comment::all();
+    //    // return view('home', compact('comments'));
+    // }
 
     public function store(Request $request)
     {
-        // Validation can be added here
-        Comment::create([
-            'user_id' => auth()->id(),
-            'content' => $request->input('content')
+        $validatedData = $request->validate([
+            'content' => 'required|string|min:3',
         ]);
 
-        return redirect()->route('home');
+        Comment::create([
+            'user_id' => auth()->id(),
+            'content' => $validatedData['content']
+        ]);
+
+        return redirect()->back()->with('success', 'Review created successfully');
     }
 
     public function edit(Comment $comment)
     {
-        // Only the user who created the comment can edit it
         if ($comment->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -37,28 +40,28 @@ class CommentController extends Controller
 
     public function update(Request $request, Comment $comment)
     {
-        // Only the user who created the comment can update it
+
         if ($comment->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Validation can be added here
+        
         $comment->update([
             'content' => $request->input('content')
         ]);
 
-        return redirect()->route('home');
+        return redirect()->back()->with('success', 'Review updated successfully');
     }
 
     public function destroy(Comment $comment)
     {
-        // Only the user who created the comment can delete it
+        
         if ($comment->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
         $comment->delete();
 
-        return redirect()->route('home');
+        return redirect()->back()->with('success', 'Review deleted');
     }
 }
